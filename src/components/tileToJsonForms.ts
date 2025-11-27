@@ -1,4 +1,4 @@
-import { BackendTile } from "./types";
+import { BackendTile, TYPE_SCHEMA_MAP } from "./types";
 
 function chunkArray<T>(arr: T[], size: number): T[][] {
     const chunks: T[][] = [];
@@ -16,22 +16,18 @@ export function tileToJsonForms(tile: BackendTile) {
     tile.items.forEach((item, i) => {
         const key = item.label.replace(/\s+/g, "_").toLowerCase() + "_" + i;
 
-        if (item.type === "aadhaar") {
-            properties[key] = {
-                type: "string",
-                title: item.label,
-            };
-        } else {
-            properties[key] = {
-                type: item.type === "date" ? "string" : item.type || "string",
-                title: item.label,
-                ...(item.type === "date" ? { format: "date" } : {}),
-            };
-        }
+        const schemaConfig =
+            TYPE_SCHEMA_MAP[item.type || "string"] ||
+            TYPE_SCHEMA_MAP["string"];
+
+        properties[key] = {
+            ...schemaConfig,
+            title: item.label,
+        };
 
         elements.push({
             type: "Control",
-            scope: "#/properties/" + key,
+            scope: `#/properties/${key}`,
         });
 
         initialData[key] = item.value;

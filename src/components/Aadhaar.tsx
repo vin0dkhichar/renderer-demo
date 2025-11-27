@@ -89,8 +89,7 @@ const AadhaarRenderer = ({ data, path, handleChange }: AadhaarRendererProps) => 
                     title="Authenticate Aadhaar"
                     className="
                         absolute top-1/2 right-2 -translate-y-1/2 flex items-center justify-center
-                        w-8 h-8 rounded transition-colors text-white
-                        bg-blue-700 hover:bg-blue-800 cursor-pointer
+                        w-8 h-8 rounded transition-colors text-white bg-black
                     "
                 >
                     <AuthenticateIcon />

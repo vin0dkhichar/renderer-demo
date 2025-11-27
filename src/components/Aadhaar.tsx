@@ -21,27 +21,40 @@ interface AadhaarRendererProps {
     handleChange(path: string, value: any): void;
 }
 
+const AADHAAR_REGEX = /^[0-9]{12}$/;
+
 const AadhaarRenderer = ({ data, path, handleChange }: AadhaarRendererProps) => {
     const [aadhaar, setAadhaar] = useState(data || "");
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         setAadhaar(data || "");
     }, [data]);
 
+    const validate = (value: string) => {
+        if (!AADHAAR_REGEX.test(value)) {
+            setError("Aadhaar must be exactly 12 digits (0-9 only)");
+            return false;
+        }
+        setError(null);
+        return true;
+    };
+
     const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value.replace(/\D/g, "").slice(0, 12);
-        setAadhaar(val);
-        handleChange(path, val);
+        const value = e.target.value.replace(/[^0-9]/g, "").slice(0, 12);
+        setAadhaar(value);
+        handleChange(path, value);
+        validate(value);
     };
 
     const onAuthenticate = () => {
-        if (aadhaar.length === 12) {
+        if (validate(aadhaar)) {
             window.location.href = `/jsonforms`;
         }
     };
 
     return (
-        <div className="w-full relative">
+        <div className="w-full relative space-y-1">
             <label
                 htmlFor="aadhaar-input"
                 className="absolute -top-2 left-3 bg-white px-1 text-black font-semibold text-sm select-none pointer-events-none"
@@ -53,30 +66,37 @@ const AadhaarRenderer = ({ data, path, handleChange }: AadhaarRendererProps) => 
                 id="aadhaar-input"
                 type="text"
                 inputMode="numeric"
+                pattern="[0-9]{12}"
                 maxLength={12}
-                placeholder="Enter Aadhaar Number"
+                placeholder="Enter 12-digit Aadhaar"
                 value={aadhaar}
                 onChange={onInputChange}
-                aria-label="Aadhaar Number"
-                className="w-full pr-10 px-4 py-3.5 text-black border border-gray-300 rounded outline-none focus:border-blue-700"
+                className={`w-full pr-10 px-4 py-3.5 text-black border rounded outline-none
+                    ${error ? "border-red-500 focus:border-red-600" : "border-gray-300 focus:border-blue-700"}
+                `}
             />
 
-            <button
-                type="button"
-                onClick={onAuthenticate}
-                disabled={aadhaar.length !== 12}
-                title={aadhaar.length !== 12 ? "Enter a valid 12-digit Aadhaar" : "Authenticate"}
-                className={`
-                            absolute top-1/2 right-2 -translate-y-1/2 flex items-center justify-center
-                            w-8 h-8 rounded
-                            transition-colors
-                            ${aadhaar.length === 12 ? "bg-blue-700 hover:bg-blue-800 cursor-pointer" : "bg-gray-400 cursor-not-allowed"}
-                            text-white
-                            disabled:opacity-50
-                `}
-            >
-                <AuthenticateIcon />
-            </button>
+            {error && (
+                <p className="text-red-600 text-sm font-medium">
+                    {error}
+                </p>
+            )}
+
+            {AADHAAR_REGEX.test(aadhaar) && (
+                <button
+                    type="button"
+                    onClick={onAuthenticate}
+                    title="Authenticate Aadhaar"
+                    className="
+                        absolute top-1/2 right-2 -translate-y-1/2 flex items-center justify-center
+                        w-8 h-8 rounded transition-colors text-white
+                        bg-blue-700 hover:bg-blue-800 cursor-pointer
+                    "
+                >
+                    <AuthenticateIcon />
+                </button>
+            )}
+
         </div>
     );
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { JsonForms, withJsonFormsControlProps } from "@jsonforms/react";
 import { materialRenderers, materialCells } from "@jsonforms/material-renderers";
 import {
@@ -16,35 +16,124 @@ type UserData = {
     email: string;
 };
 
-const UserEditor: React.FC<{ label?: string }> = ({ label }) => {
-    const [user, setUser] = useState<UserData>({
-        fullName: "",
-        email: ""
-    });
+type UserEditorProps = {
+    label?: string;
+    value: UserData;
+    onChange: (data: UserData) => void;
+};
 
-    const handleChange = (field: keyof UserData, value: string) => {
-        setUser(prev => ({ ...prev, [field]: value }));
+const UserEditor: React.FC<UserEditorProps> = ({ label, value, onChange }) => {
+    const [saving, setSaving] = useState(false);
+
+    const handleChange = (field: keyof UserData, val: string) => {
+        onChange({ ...value, [field]: val });
+    };
+
+    const saveUser = async () => {
+        setSaving(true);
+        await new Promise((res) => setTimeout(res, 800));
+        alert("User saved ✅");
+        setSaving(false);
     };
 
     return (
-        <div className="border rounded p-3 mb-3 bg-white shadow-sm">
-            {label && <label className="font-semibold mb-2 block">{label}</label>}
+        <div className="border rounded p-4 mb-4 bg-white shadow-sm">
+            {label && <div className="text-black font-semibold mb-3">{label}</div>}
 
             <input
                 type="text"
-                value={user.fullName}
-                placeholder="Full Name"
+                value={value?.fullName}
                 onChange={(e) => handleChange("fullName", e.target.value)}
-                className="text-black border rounded w-full p-2 mb-2"
+                placeholder="Full Name"
+                className="text-black  border rounded w-full p-2 mb-3"
             />
 
             <input
                 type="email"
-                value={user.email}
-                placeholder="Email"
+                value={value?.email}
                 onChange={(e) => handleChange("email", e.target.value)}
-                className="text-black border rounded w-full p-2"
+                placeholder="Email"
+                className="text-black  border rounded w-full p-2 mb-4"
             />
+
+            <button
+                onClick={saveUser}
+                disabled={saving}
+                className="bg-blue-600 text-white px-4 py-2 rounded"
+            >
+                {saving ? "Saving..." : "Save"}
+            </button>
+        </div>
+    );
+};
+
+const MemberList: React.FC = () => {
+    const [members, setMembers] = useState<UserData[]>([]);
+    const [newMember, setNewMember] = useState("");
+
+    useEffect(() => {
+        const fetchMembers = async () => {
+            const apiData: UserData[] = [
+                // { fullName: "Abbb", email: "abbb@mail.com" },
+                // { fullName: "John Doe", email: "john@mail.com" }
+            ];
+            setMembers(apiData);
+        };
+
+        fetchMembers();
+    }, []);
+
+    const addMember = () => {
+        if (!newMember.trim()) return;
+        setMembers((prev) => [...prev, { fullName: newMember, email: "" }]);
+        setNewMember("");
+    };
+
+    const updateMember = (index: number, data: UserData) => {
+        setMembers((prev) =>
+            prev.map((m, i) => (i === index ? data : m))
+        );
+    };
+
+    const removeMember = (index: number) => {
+        setMembers((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    return (
+        <div className="border p-4 rounded bg-gray-50">
+            <h2 className="text-lg font-semibold mb-4">Members</h2>
+
+            <div className="flex gap-2 mb-5">
+                <input
+                    value={newMember}
+                    onChange={(e) => setNewMember(e.target.value)}
+                    placeholder="New member name"
+                    className="text-black border p-2 rounded w-full"
+                />
+                <button
+                    onClick={addMember}
+                    className="bg-green-600 text-white px-4 rounded"
+                >
+                    Add
+                </button>
+            </div>
+
+            {members.map((member, i) => (
+                <div key={i} className="relative">
+                    <UserEditor
+                        label={`Member ${i + 1}`}
+                        value={member}
+                        onChange={(data) => updateMember(i, data)}
+                    />
+
+                    <button
+                        onClick={() => removeMember(i)}
+                        className="absolute top-2 right-2 text-red-600 font-bold"
+                    >
+                        ✕
+                    </button>
+                </div>
+            ))}
         </div>
     );
 };
@@ -135,59 +224,6 @@ const InfoCard: React.FC<ControlProps> = ({ uischema }) => {
     );
 };
 
-
-
-const MemberList: React.FC = () => {
-    const [members, setMembers] = useState<UserData[]>([]);
-    const [newMemberName, setNewMemberName] = useState("");
-
-    const addMember = () => {
-        if (!newMemberName.trim()) return;
-        setMembers(prev => [...prev, { fullName: newMemberName, email: "" }]);
-        setNewMemberName("");
-    };
-
-    const removeMember = (index: number) => {
-        setMembers(prev => prev.filter((_, i) => i !== index));
-    };
-
-    return (
-        <div className="border border-gray-300 rounded-md p-4 bg-white shadow-sm">
-            <label className="text-black block text-lg font-semibold mb-3">Members</label>
-
-            <div className="flex gap-2 mb-4">
-                <input
-                    type="text"
-                    value={newMemberName}
-                    onChange={(e) => setNewMemberName(e.target.value)}
-                    placeholder="Enter member name"
-                    className="text-black border p-2 rounded w-full"
-                />
-                <button
-                    onClick={addMember}
-                    disabled={!newMemberName.trim()}
-                    className="bg-indigo-600 text-white px-4 rounded disabled:opacity-50"
-                >
-                    Add
-                </button>
-            </div>
-
-            {members.map((_, i) => (
-                <div key={i} className="relative">
-                    <UserEditor />
-                    <button
-                        onClick={() => removeMember(i)}
-                        className="absolute top-2 right-2 text-red-600 font-bold"
-                    >
-                        ×
-                    </button>
-                </div>
-            ))}
-        </div>
-    );
-};
-
-
 const AadhaarField: React.FC = () => {
     const [aadhaar, setAadhaar] = useState("");
     const isValid = /^\d{12}$/.test(aadhaar);
@@ -259,7 +295,6 @@ const schema: JsonSchema = {
         userProfile: { type: "object" },
         aadhaar: { type: "string" },
         members: { type: "array" },
-        // infoCard: { type: "object" }
         infoCard: {
             type: "object",
             properties: {

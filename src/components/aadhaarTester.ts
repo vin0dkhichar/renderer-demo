@@ -1,10 +1,10 @@
-import { rankWith, isControl } from "@jsonforms/core";
+import { rankWith, schemaMatches } from "@jsonforms/core";
 
 const aadhaarTester = rankWith(
-    4,
-    (uischema, schema) =>
-        isControl(uischema) &&
-        uischema.scope.toLowerCase().includes("aadhaar")
+    5,
+    schemaMatches((schema) => {
+        return schema.format === "aadhaar";
+    })
 );
 
 export default aadhaarTester;

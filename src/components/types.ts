@@ -24,8 +24,5 @@ export const TYPE_SCHEMA_MAP: Record<string, JsonSchemaConfig> = {
     number: { type: "number" },
     boolean: { type: "boolean" },
     date: { type: "string", format: "date" },
-
-    aadhaar: {
-        type: "string",
-    },
+    aadhaar: { type: "string", format: "aadhaar" },
 };
